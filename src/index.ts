@@ -4,7 +4,7 @@ import listRoutes from './routes/list';
 
 const app = express();
 const PORT = 5000;
-const MONGO_URI = 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';
+const MONGO_URI = 'mongodb+srv://<username>:<password>h@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=<appname>';
 
 // Middleware
 app.use(express.json());
