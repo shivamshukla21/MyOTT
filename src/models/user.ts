@@ -7,7 +7,7 @@ interface User extends Document {
     dislikedGenres: string[];
   };
   watchHistory: {
-    contentId: string;
+    contentId: string;  
     watchedOn: Date;
     rating?: number;
   }[];

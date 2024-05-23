@@ -8,11 +8,13 @@ interface ListItem {
 interface List extends Document {
   userId: string;
   items: ListItem[];
+  favorites: ListItem[];
 }
 
 const listSchema = new Schema<List>({
   userId: { type: String, required: true },
-  items: [{ itemId: { type: String }, itemType: { type: String } }]
+  items: [{ itemId: { type: String }, itemType: { type: String } }],
+  favorites: [{ itemId: { type: String }, itemType: { type: String } }]
 });
 
 export default model<List>('List', listSchema);

@@ -14,7 +14,7 @@ router.post('/add-favorite', async (req: Request, res: Response) => {
       { new: true, upsert: true }
     );
     res.status(200).json({ message: 'Item added to favorites successfully', list });
-  } catch (err: unknown) {
+  } catch (err: any) { // Specify the type of `err` as `any`
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
     } else {
@@ -34,7 +34,7 @@ router.post('/remove-favorite', async (req: Request, res: Response) => {
       { new: true }
     );
     res.status(200).json({ message: 'Item removed from favorites successfully', list });
-  } catch (err: unknown) {
+  } catch (err: any) { // Specify the type of `err` as `any`
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
     } else {
@@ -50,7 +50,7 @@ router.get('/favorites/:userId', async (req: Request, res: Response) => {
     // Retrieve user's list of favorite items
     const list = await List.findOne({ userId });
     res.status(200).json(list?.favorites);
-  } catch (err: unknown) {
+  } catch (err: any) { // Specify the type of `err` as `any`
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
     } else {
