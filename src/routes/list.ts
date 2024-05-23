@@ -1,18 +1,19 @@
-import { Router, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import List from '../models/list';
 
-const router = Router();
+const router = express.Router();
 
-// Add to My List
-router.post('/add', async (req: Request, res: Response) => {
+// Add a favorite TV show or movie to My List
+router.post('/add-favorite', async (req: Request, res: Response) => {
   const { userId, itemId, itemType } = req.body;
   try {
+    // Add item to user's list as a favorite
     const list = await List.findOneAndUpdate(
       { userId },
-      { $addToSet: { items: { itemId, itemType } } },
+      { $addToSet: { favorites: { itemId, itemType } } },
       { new: true, upsert: true }
     );
-    res.status(200).json(list);
+    res.status(200).json({ message: 'Item added to favorites successfully', list });
   } catch (err: unknown) {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
@@ -22,16 +23,17 @@ router.post('/add', async (req: Request, res: Response) => {
   }
 });
 
-// Remove from My List
-router.post('/remove', async (req: Request, res: Response) => {
+// Remove a favorite TV show or movie from My List
+router.post('/remove-favorite', async (req: Request, res: Response) => {
   const { userId, itemId } = req.body;
   try {
+    // Remove item from user's list of favorites
     const list = await List.findOneAndUpdate(
       { userId },
-      { $pull: { items: { itemId } } },
+      { $pull: { favorites: { itemId } } },
       { new: true }
     );
-    res.status(200).json(list);
+    res.status(200).json({ message: 'Item removed from favorites successfully', list });
   } catch (err: unknown) {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
@@ -41,12 +43,13 @@ router.post('/remove', async (req: Request, res: Response) => {
   }
 });
 
-// List My Items
-router.get('/:userId', async (req: Request, res: Response) => {
+// List favorite TV shows and movies
+router.get('/favorites/:userId', async (req: Request, res: Response) => {
   const { userId } = req.params;
   try {
+    // Retrieve user's list of favorite items
     const list = await List.findOne({ userId });
-    res.status(200).json(list);
+    res.status(200).json(list?.favorites);
   } catch (err: unknown) {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
