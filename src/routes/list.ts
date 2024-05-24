@@ -38,7 +38,7 @@ router.delete('/remove-favorite', async (req: Request, res: Response) => {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
     } else {
-      res.status 500.json({ error: 'Unknown error' });
+      res.status(500).json({ error: 'Unknown error' });
     }
   }
 });
