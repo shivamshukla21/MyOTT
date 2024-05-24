@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/user';
+import User from '../models/user'; // Adjust this import based on your actual file structure
 
 const router = express.Router();
 const secret = process.env.JWT_SECRET || 'your_jwt_secret';
@@ -15,7 +15,7 @@ router.post('/register', async (req: Request, res: Response) => {
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 
@@ -34,7 +34,7 @@ router.post('/login', async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user._id }, secret, { expiresIn: '1h' });
     res.status(200).json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 
