@@ -1,13 +1,15 @@
+// src/models/user.ts
 import { Schema, model, Document } from 'mongoose';
 
 interface User extends Document {
   username: string;
+  password: string;
   preferences: {
     favoriteGenres: string[];
     dislikedGenres: string[];
   };
   watchHistory: {
-    contentId: string;  
+    contentId: string;
     watchedOn: Date;
     rating?: number;
   }[];
@@ -15,6 +17,7 @@ interface User extends Document {
 
 const userSchema = new Schema<User>({
   username: { type: String, required: true },
+  password: { type: String, required: true },
   preferences: {
     favoriteGenres: [{ type: String }],
     dislikedGenres: [{ type: String }]
