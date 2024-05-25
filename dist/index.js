@@ -6,12 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const path_1 = __importDefault(require("path"));
 const list_1 = __importDefault(require("./routes/list"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const usersPath = path_1.default.resolve(__dirname, '../../MOCK_DATA.json');
-const users = require(usersPath);
+const users = require("../MOCK_DATA.json");
 // Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';
