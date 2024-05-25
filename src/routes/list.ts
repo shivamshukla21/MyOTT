@@ -7,7 +7,6 @@ const router = express.Router();
 router.post('/add-favorite', async (req: Request, res: Response) => {
   const { userId, itemId, itemType } = req.body;
   try {
-    // Add item to user's list as a favorite
     const list = await List.findOneAndUpdate(
       { userId },
       { $addToSet: { favorites: { itemId, itemType } } },
@@ -27,7 +26,6 @@ router.post('/add-favorite', async (req: Request, res: Response) => {
 router.delete('/remove-favorite', async (req: Request, res: Response) => {
   const { userId, itemId } = req.body;
   try {
-    // Remove item from user's list of favorites
     const list = await List.findOneAndUpdate(
       { userId },
       { $pull: { favorites: { itemId } } },
@@ -43,14 +41,21 @@ router.delete('/remove-favorite', async (req: Request, res: Response) => {
   }
 });
 
-// List favorite TV shows and movies
+// List favorite TV shows and movies with pagination
 router.get('/favorites/:userId', async (req: Request, res: Response) => {
   const { userId } = req.params;
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
   try {
     // Retrieve user's list of favorite items
     const list = await List.findOne({ userId });
-    res.status(200).json(list?.favorites);
-  } catch (err: unknown) {
+    if (!list) {
+      return res.status(404).json({ error: 'User list not found' });
+    }
+    const favorites = list.favorites;
+    const paginatedFavorites = favorites.slice((page - 1) * limit, page * limit);
+    res.status(200).json({ favorites: paginatedFavorites }); // Ensure to return an object with 'favorites' property
+  } catch (err) {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
     } else {

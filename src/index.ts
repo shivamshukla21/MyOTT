@@ -8,6 +8,7 @@ dotenv.config();
 
 const app = express();
 
+
 // Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';

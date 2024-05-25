@@ -55,7 +55,7 @@ describe('List API', () => {
     const response = await request(app).get('/api/list/favorites/testUser');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(
+    expect(response.body.favorites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           itemId: 'testItem',

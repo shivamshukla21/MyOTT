@@ -19,7 +19,6 @@ const router = express_1.default.Router();
 router.post('/add-favorite', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, itemId, itemType } = req.body;
     try {
-        // Add item to user's list as a favorite
         const list = yield list_1.default.findOneAndUpdate({ userId }, { $addToSet: { favorites: { itemId, itemType } } }, { new: true, upsert: true });
         res.status(200).json({ message: 'Item added to favorites successfully', list });
     }
@@ -36,7 +35,6 @@ router.post('/add-favorite', (req, res) => __awaiter(void 0, void 0, void 0, fun
 router.delete('/remove-favorite', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, itemId } = req.body;
     try {
-        // Remove item from user's list of favorites
         const list = yield list_1.default.findOneAndUpdate({ userId }, { $pull: { favorites: { itemId } } }, { new: true });
         res.status(200).json({ message: 'Item removed from favorites successfully', list });
     }
@@ -49,13 +47,20 @@ router.delete('/remove-favorite', (req, res) => __awaiter(void 0, void 0, void 0
         }
     }
 }));
-// List favorite TV shows and movies
+// List favorite TV shows and movies with pagination
 router.get('/favorites/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
     try {
         // Retrieve user's list of favorite items
         const list = yield list_1.default.findOne({ userId });
-        res.status(200).json(list === null || list === void 0 ? void 0 : list.favorites);
+        if (!list) {
+            return res.status(404).json({ error: 'User list not found' });
+        }
+        const favorites = list.favorites;
+        const paginatedFavorites = favorites.slice((page - 1) * limit, page * limit);
+        res.status(200).json({ favorites: paginatedFavorites }); // Ensure to return an object with 'favorites' property
     }
     catch (err) {
         if (err instanceof Error) {
