@@ -15,6 +15,12 @@ const userSchema = new mongoose_1.Schema({
             watchedOn: { type: Date },
             rating: { type: Number }
         }
+    ],
+    favorites: [
+        {
+            itemId: { type: String },
+            itemType: { type: String }
+        }
     ]
 });
 exports.default = (0, mongoose_1.model)('User', userSchema);

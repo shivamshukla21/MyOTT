@@ -1,6 +1,11 @@
 // src/models/user.ts
 import { Schema, model, Document } from 'mongoose';
 
+interface Favorite {
+  itemId: string;
+  itemType: string;
+}
+
 interface User extends Document {
   username: string;
   password: string;
@@ -13,6 +18,7 @@ interface User extends Document {
     watchedOn: Date;
     rating?: number;
   }[];
+  favorites: Favorite[];
 }
 
 const userSchema = new Schema<User>({
@@ -27,6 +33,12 @@ const userSchema = new Schema<User>({
       contentId: { type: String },
       watchedOn: { type: Date },
       rating: { type: Number }
+    }
+  ],
+  favorites: [
+    {
+      itemId: { type: String },
+      itemType: { type: String }
     }
   ]
 });

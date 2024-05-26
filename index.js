@@ -4,7 +4,7 @@ const users = require("./MOCK_DATA.json");
 const app = express();
 const PORT = 5000;
 
-app.get('/users', (req, res) => {
+app.get("api/users", (req, res) => {
   return res.json(users);
 });
 
