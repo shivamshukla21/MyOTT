@@ -139,7 +139,7 @@ app.route('/api/users/:userId')
     }
     // Remove the user from the array
     users.splice(userIndex, 1);
-  
+
   fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to delete user' });
