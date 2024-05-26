@@ -25,7 +25,7 @@ type User = {
 let users: User[] = [];
 
 // Load the users data from MOCK_DATA.json file
-fs.readFile('home/runner/MyListOTT/MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
+fs.readFile('./MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
   if (err) {
     console.error('Error reading data file:', err.message);
     return;
@@ -117,7 +117,7 @@ app.route('/api/users/:userId')
     }
 
     // Write the updated users array back to the MOCK_DATA.json file
-  fs.writeFile('home/runner/MyListOTT/MOCK_DATA.json', JSON.stringify(users, null, 2), 
+  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), 
           (err: Error) => {
             if (err) {
               return res.status(500).json({ error: 'Failed to update user favorites' });
@@ -140,7 +140,7 @@ app.route('/api/users/:userId')
     // Remove the user from the array
     users.splice(userIndex, 1);
   
-  fs.writeFile('home/runner/MyListOTT/MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
+  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to delete user' });
     }
@@ -176,7 +176,7 @@ app.post('/api/users', (req, res) => {
     users.push(newUser);
 
     // Write the updated users array back to the MOCK_DATA.json file
-    fs.writeFile('home/runner/MyListOTT/MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
+    fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to create user' });
       }
@@ -215,7 +215,7 @@ app.delete('/api/users/:userId/favorites/:itemId', (req, res) => {
   users[userIndex].favorites.splice(favoriteIndex, 1);
 
   // Write the updated users array back to the MOCK_DATA.json file
-  fs.writeFile('home/runner/MyListOTT/MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
+  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to delete favorite item' });
     }

@@ -15,7 +15,7 @@ const cache = new node_cache_1.default({ stdTTL: 100, checkperiod: 120 });
 const fs = require('fs');
 let users = [];
 // Load the users data from MOCK_DATA.json file
-fs.readFile('/home/runner/MyListOTT/MOCK_DATA.json', 'utf8', (err, data) => {
+fs.readFile('./MOCK_DATA.json', 'utf8', (err, data) => {
     if (err) {
         console.error('Error reading data file:', err.message);
         return;
