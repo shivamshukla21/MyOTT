@@ -25,7 +25,7 @@ type User = {
 let users: User[] = [];
 
 // Load the users data from MOCK_DATA.json file
-fs.readFile('/home/runner/MyListOTT/MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
+fs.readFile('./MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
   if (err) {
     console.error('Error reading data file:', err.message);
     return;
