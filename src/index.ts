@@ -6,11 +6,18 @@ import listRoutes from './routes/list';
 import NodeCache from 'node-cache';
 import bodyParser from 'body-parser';
 
+
 dotenv.config();
 
 const app = express();
-const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+
+//const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+//const cache = cacheService.cache({ stdTTL: 100, checkperiod: 120 });
+
+const apicache = require('apicache');
 const fs = require('fs');
+
+let cache = apicache.middleware;
 
 type Favorite = {
   itemId: string;
@@ -59,13 +66,13 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to My List API for OTT Platform!');
 });
 
-app.get('/api/users', (req: Request, res: Response) => {
+app.get('/api/users', cache('5 minutes'), (req: Request, res: Response) => {
   // Assuming 'users' contains the user data
   return res.json(users);
 });
 
 app.route('/api/users/:userId')
-  .get((req, res) => {
+  .get(cache('5 minutes'), (req, res) => {
     const id = String(req.params.userId);
     const user = users.find((user : any) => user.userId === id);
   if (user) {

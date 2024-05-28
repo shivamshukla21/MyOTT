@@ -7,12 +7,14 @@ const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const list_1 = __importDefault(require("./routes/list"));
-const node_cache_1 = __importDefault(require("node-cache"));
 const body_parser_1 = __importDefault(require("body-parser"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const cache = new node_cache_1.default({ stdTTL: 100, checkperiod: 120 });
+//const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+//const cache = cacheService.cache({ stdTTL: 100, checkperiod: 120 });
+const apicache = require('apicache');
 const fs = require('fs');
+let cache = apicache.middleware;
 let users = [];
 // Load the users data from MOCK_DATA.json file
 fs.readFile('./MOCK_DATA.json', 'utf8', (err, data) => {
@@ -42,12 +44,12 @@ app.use('/api/list', list_1.default);
 app.get('/', (req, res) => {
     res.send('Welcome to My List API for OTT Platform!');
 });
-app.get('/api/users', (req, res) => {
+app.get('/api/users', cache('5 minutes'), (req, res) => {
     // Assuming 'users' contains the user data
     return res.json(users);
 });
 app.route('/api/users/:userId')
-    .get((req, res) => {
+    .get(cache('5 minutes'), (req, res) => {
     const id = String(req.params.userId);
     const user = users.find((user) => user.userId === id);
     if (user) {
