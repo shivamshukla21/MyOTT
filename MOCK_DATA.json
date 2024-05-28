@@ -1,18 +1,5 @@
 [
   {
-    "userId": "kdaud0",
-    "favorites": [
-      {
-        "itemId": "efrederick0",
-        "itemType": "tvShow"
-      },
-      {
-        "itemId": "mgrumell1",
-        "itemType": "tvShow"
-      }
-    ]
-  },
-  {
     "userId": "rgreenhow1",
     "favorites": [
       {
@@ -10903,24 +10890,20 @@
     ]
   },
   {
-    "userId": "bbryentonrr",
+    "userId": "leobd",
     "favorites": [
       {
-        "itemId": "jiwaszkiewicz0",
+        "itemId": "djbef",
+        "itemType": "movie"
+      },
+      {
+        "itemId": "tmkoc",
         "itemType": "tvShow"
       }
     ]
   },
   {
-    "userId": "f",
-    "favorites": []
-  },
-  {
-    "userId": "testput",
-    "favorites": []
-  },
-  {
-    "userId": "testputnew",
+    "userId": "newmore",
     "favorites": []
   }
 ]

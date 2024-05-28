@@ -36,7 +36,6 @@ fs.readFile('./MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
 
 console.log('__dirname:', __dirname);
 
-
 // Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';
@@ -125,6 +124,23 @@ app.route('/api/users/:userId')
       return res.json({ message: 'User favorites updated successfully', user: users[userIndex] });
     });
 })
+  .patch((req, res) => {
+    const id = String(req.params.userId);
+    const updatedUserId = req.body.newUserId; // Assuming you have a field called "newUserId" in the request body
+    const userIndex = users.findIndex((user : any) => user.userId === id);
+    if (userIndex !== -1) {
+      users[userIndex].userId = updatedUserId;
+      // Write the changes to the file
+      fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to update user ID' });
+        }
+        return res.json({ message: 'User ID updated successfully', user: users[userIndex] });
+      });
+    } else {
+      return res.status(404).json({ error: 'User not found' });
+    }
+})
 .delete((req, res) => {
     const { userId } = req.params; 
     // Assuming userId is passed as a URL parameter
@@ -183,7 +199,7 @@ app.post('/api/users', (req, res) => {
       // Return a success response
       return res.status(201).json({ message: 'User created successfully', user: newUser });
     });
-})
+});
 
 app.delete('/api/users/:userId/favorites/:itemId', (req, res) => {
   const { userId, itemId } = req.params;

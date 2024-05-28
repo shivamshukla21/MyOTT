@@ -98,6 +98,24 @@ app.route('/api/users/:userId')
         return res.json({ message: 'User favorites updated successfully', user: users[userIndex] });
     });
 })
+    .patch((req, res) => {
+    const id = String(req.params.userId);
+    const updatedUserId = req.body.newUserId; // Assuming you have a field called "newUserId" in the request body
+    const userIndex = users.findIndex((user) => user.userId === id);
+    if (userIndex !== -1) {
+        users[userIndex].userId = updatedUserId;
+        // Write the changes to the file
+        fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Failed to update user ID' });
+            }
+            return res.json({ message: 'User ID updated successfully', user: users[userIndex] });
+        });
+    }
+    else {
+        return res.status(404).json({ error: 'User not found' });
+    }
+})
     .delete((req, res) => {
     const { userId } = req.params;
     // Assuming userId is passed as a URL parameter
