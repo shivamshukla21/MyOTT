@@ -1,57 +1,54 @@
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import path from 'path';
 import listRoutes from './routes/list';
-import NodeCache from 'node-cache';
 import bodyParser from 'body-parser';
 
-
-dotenv.config();
+require("dotenv").config();
+console.log(process.env.PORT);
 
 const app = express();
-
-//const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
-//const cache = cacheService.cache({ stdTTL: 100, checkperiod: 120 });
-
-const apicache = require('apicache');
-const fs = require('fs');
-
+let apicache = require('apicache');
 let cache = apicache.middleware;
 
-type Favorite = {
-  itemId: string;
-  itemType: string;
-};
+// Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
+const PORT = process.env.PORT;
+const MONGO_URI = process.env.MONGO_URI;
 
-type User = {
-  userId: string;
-  favorites: Favorite[];
-};
-
-let users: User[] = [];
-
-// Load the users data from MOCK_DATA.json file
-fs.readFile('./MOCK_DATA.json', 'utf8', (err: Error, data: any) => {
-  if (err) {
-    console.error('Error reading data file:', err.message);
-    return;
-  }
-  users = JSON.parse(data);
-  console.log('Data loaded successfully:'); // Log the loaded data
+const favSchema = new mongoose.Schema({
+  itemId: String,
+  itemType: String
+});
+const userSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    require: true,
+    unique: true
+  },
+  favorites: [favSchema]
+},
+  {collection: 'MyOTT', 
+   timestamps: true, 
+   toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      delete ret.createdAt;
+      delete ret.updatedAt;
+  }}
 });
 
-console.log('__dirname:', __dirname);
-
-// Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';
+const User = mongoose.model('User', userSchema);
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+if (!MONGO_URI) {
+  console.error('MONGO_URI is not defined in the environment variables.');
+  process.exit(1); // Exit the process
+}
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -66,184 +63,146 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to My List API for OTT Platform!');
 });
 
-app.get('/api/users', cache('5 minutes'), (req: Request, res: Response) => {
-  // Assuming 'users' contains the user data
-  return res.json(users);
+app.get('/api/users', cache('5 minutes'), async (req: Request, res: Response) => {
+  const allDbUsers = await User.find({});
+  try {
+    res.json(allDbUsers);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
 });
 
 app.route('/api/users/:userId')
-  .get(cache('5 minutes'), (req, res) => {
-    const id = String(req.params.userId);
-    const user = users.find((user : any) => user.userId === id);
-  if (user) {
-    return res.json(user);
-  } else {
-    return res.status(404).json({ error: 'User not found' });
-  }
-})
-  .put((req, res) => {
+  .get(cache('5 minutes'), async (req, res) => {
+    try {
+      const user = await User.findOne({ userId: req.params.userId });
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  })
+  .put(async (req, res) => {
     const { userId } = req.params;
-    const newUserId = req.body['userId'];
     const newFavorite = {
       itemId: req.body['favorites[itemId]'],
       itemType: req.body['favorites[itemType]'],
     };
-    if(!userId){
-      return
-    }
-    // Find the user by userId
-    const userIndex = users.findIndex((user) => user.userId === userId);
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' });
-    }
 
-    // Ensure favorites is an array before checking
-    if (!Array.isArray(users[userIndex].favorites)) {
-      users[userIndex].favorites = [];
-    }
-
-    // Check if the itemId already exists in the favorites array
-    const itemExists = users[userIndex].favorites.some(
-      (favorite) => favorite.itemId === newFavorite.itemId
-    );
-
-    if (itemExists) {
-      return res.status(409).json({ error: 'Favorite item already exists' });
-    }
-
-    // Append the new favorite item to the array
-    users[userIndex].favorites.push(newFavorite);
-
-    // Check if the newUserId already exists
-    const existingUserIndex = users.findIndex((user) => user.userId === newUserId);
-    if (existingUserIndex === -1 || existingUserIndex === userIndex) {
-      if (newUserId) {
-        users[userIndex].userId = newUserId;
+    try {
+      const user = await User.findOne({ userId });
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
       }
-    }
 
-    // Write the updated users array back to the MOCK_DATA.json file
-  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), 
-          (err: Error) => {
-            if (err) {
-              return res.status(500).json({ error: 'Failed to update user favorites' });
+      const itemExists = user.favorites.some(
+        (favorite: any) => favorite.itemId === newFavorite.itemId
+      );
+
+      if (itemExists) {
+        return res.status(409).json({ error: 'Favorite item already exists' });
       }
-      return res.json({ message: 'User favorites updated successfully', user: users[userIndex] });
-    });
-})
-  .patch((req, res) => {
+
+      user.favorites.push(newFavorite);
+      await user.save();
+
+      res.json({ message: 'User favorites updated successfully', user });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update user favorites' });
+    }
+  })
+  .patch(async (req, res) => {
     const id = String(req.params.userId);
-    const updatedUserId = req.body.newUserId; // Assuming you have a field called "newUserId" in the request body
-    const userIndex = users.findIndex((user : any) => user.userId === id);
-    if (userIndex !== -1) {
-      users[userIndex].userId = updatedUserId;
-      // Write the changes to the file
-      fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to update user ID' });
-        }
-        return res.json({ message: 'User ID updated successfully', user: users[userIndex] });
-      });
-    } else {
-      return res.status(404).json({ error: 'User not found' });
-    }
-})
-.delete((req, res) => {
-    const { userId } = req.params; 
-    // Assuming userId is passed as a URL parameter
+    const updatedUserId = req.body.newUserId;
 
-    // Find the index of the user with the given userId
-    const userIndex = users.findIndex((user: { userId: string }) => 
-    user.userId === userId);
+    try {
+      const user = await User.findOneAndUpdate(
+        { userId: id },
+        { userId: updatedUserId },
+        { new: true }
+      );
 
-    if (userIndex === -1) {
-      // If the user is not found, return a 404 error
-      return res.status(404).json({ error: 'User not found' });
+      if (user) {
+        res.json({ message: 'User ID updated successfully', user });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update user ID' });
     }
-    // Remove the user from the array
-    users.splice(userIndex, 1);
+  })
+  .delete(async (req, res) => {
+    const { userId } = req.params;
 
-  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to delete user' });
+    try {
+      const user = await User.findOneAndDelete({ userId });
+      if (user) {
+        res.json({ message: 'User deleted successfully' });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete user' });
     }
-    // Return a success response
-    return res.json({ message: 'User deleted successfully' });
   });
-});
 
-app.post('/api/users', (req, res) => {
-    const { userId, favorites } = req.body;
+app.post('/api/users', async (req, res) => {
+  const { userId, favorites } = req.body;
 
-    // Validate required fields
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
 
-    // Check if userId already exists
-    const existingUserIndex = users.findIndex((user) => user.userId === userId);
-    if (existingUserIndex !== -1) {
+  try {
+    const existingUser = await User.findOne({ userId });
+    if (existingUser) {
       return res.status(409).json({ error: 'User with this userId already exists' });
     }
 
-    // Create new user object
-    const newUser = {
+    const newUser = new User({
       userId,
-      favorites: Array.isArray(favorites) ? favorites.map((favorite) => ({
-        itemId: favorite.itemId,
-        itemType: favorite.itemType,
-      })) : []
-    };
-
-    // Add new user to users array
-    users.push(newUser);
-
-    // Write the updated users array back to the MOCK_DATA.json file
-    fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to create user' });
-      }
-      // Return a success response
-      return res.status(201).json({ message: 'User created successfully', user: newUser });
+      favorites: Array.isArray(favorites)
+        ? favorites.map((favorite) => ({
+            itemId: favorite.itemId,
+            itemType: favorite.itemType,
+          }))
+        : [],
     });
+
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create user' });
+  }
 });
 
-app.delete('/api/users/:userId/favorites/:itemId', (req, res) => {
+app.delete('/api/users/:userId/favorites/:itemId', async (req, res) => {
   const { userId, itemId } = req.params;
 
-  // Find the index of the user with the given userId
-  const userIndex = users.findIndex((user) => user.userId === userId);
-
-  if (userIndex === -1) {
-    // If the user is not found, return a 404 error
-    return res.status(404).json({ error: 'User not found' });
-  }
-
-  // Ensure favorites is an array before proceeding
-  if (!Array.isArray(users[userIndex].favorites)) {
-    return res.status(404).json({ error: 'Favorites list not found for user' });
-  }
-
-  // Find the index of the favorite item with the given itemId
-  const favoriteIndex = users[userIndex].favorites.findIndex(
-    (favorite) => favorite.itemId === itemId
-  );
-
-  if (favoriteIndex === -1) {
-    // If the favorite item is not found, return a 404 error
-    return res.status(404).json({ error: 'Favorite item not found' });
-  }
-
-  // Remove the favorite item from the array
-  users[userIndex].favorites.splice(favoriteIndex, 1);
-
-  // Write the updated users array back to the MOCK_DATA.json file
-  fs.writeFile('./MOCK_DATA.json', JSON.stringify(users, null, 2), (err: Error) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to delete favorite item' });
+  try {
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-    return res.json({ message: 'Favorite item deleted successfully' });
-  });
+
+    const favoriteIndex = user.favorites.findIndex(
+      (favorite: any) => favorite.itemId === itemId
+    );
+
+    if (favoriteIndex === -1) {
+      return res.status(404).json({ error: 'Favorite item not found' });
+    }
+
+    user.favorites.splice(favoriteIndex, 1);
+    await user.save();
+
+    res.json({ message: 'Favorite item deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete favorite item' });
+  }
 });
 
 // Start the server

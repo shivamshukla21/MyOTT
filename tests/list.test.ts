@@ -2,10 +2,14 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../src/index';
 
-const MONGO_URI = 'mongodb+srv://shivamshukla21:8wvEUr69ekesBih@clustermyott.zfnj6um.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMyOTT';
+require("dotenv").config();
+
+const MONGO_URI = process.env.MONGO_URI;
 
 beforeAll(async () => {
+  if (mongoose.connection.readyState === 0) {
   await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+  }
 });
 
 afterAll(async () => {
