@@ -4,12 +4,10 @@ import app from '../src/index';
 
 require("dotenv").config();
 
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI as string;
 
 beforeAll(async () => {
-  if (mongoose.connection.readyState === 0) {
   await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-  }
 });
 
 afterAll(async () => {
