@@ -12,7 +12,11 @@ let cache = apicache.middleware;
 
 // Decide whether to use the PORT and MONGO_URI from HEAD or origin/main
 const PORT = process.env.PORT;
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI: string | undefined = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  throw new Error("MONGO_URI is not defined in the environment variables");
+}
 
 const favSchema = new mongoose.Schema({
   itemId: String,
@@ -44,11 +48,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-if (!MONGO_URI) {
-  console.error('MONGO_URI is not defined in the environment variables.');
-  process.exit(1); // Exit the process
-}
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
